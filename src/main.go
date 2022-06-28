@@ -33,6 +33,8 @@ func getUserCommandLoop() {
 			executeNew()
 		case "delete":
 			executeDelete()
+		case "update":
+			executeUpdate()
 		default:
 			index, err := strconv.Atoi(userInput)
 			if err != nil {
@@ -96,7 +98,7 @@ func executeNew() {
 }
 
 func executeDelete() {
-	indexes := make([]string, len(profiles))
+	var indexes []string
 	for index := range profiles {
 		indexes = append(indexes, strconv.Itoa(index+1))
 	}
@@ -112,6 +114,60 @@ func executeDelete() {
 	index, _ := strconv.Atoi(indexStr)
 	profiles = append(profiles[:index-1], profiles[index:]...)
 	fmt.Print("Profile was deleted!\n\n")
+	saveProfiles()
+	printProfiles()
+}
+
+func executeUpdate() {
+	var indexes []string
+	for index := range profiles {
+		indexes = append(indexes, strconv.Itoa(index+1))
+	}
+	indexStr := getUserInputLoop("Enter profile index to update: ", []validators.IValidator{
+		validators.ExistsValidator{indexes},
+	})
+	index, _ := strconv.Atoi(indexStr)
+	updateProfile := profiles[index-1]
+
+	names := []string{}
+	for _, profile := range profiles {
+		names = append(names, profile.Name)
+	}
+	newName := getUserInputLoop("Enter profile name: ", []validators.IValidator{
+		validators.CannotExistsValidator{names},
+	})
+	if len(newName) > 0 {
+		updateProfile.Name = newName
+	}
+
+	newUser := getUserInputLoop("Enter user: ", []validators.IValidator{})
+	if len(newUser) > 0 {
+		updateProfile.User = newUser
+	}
+
+	newAdress := getUserInputLoop("Enter address: ", []validators.IValidator{})
+	if len(newAdress) > 0 {
+		updateProfile.Adress = newAdress
+	}
+
+	newPort := getUserInputLoop("Enter port: ", []validators.IValidator{})
+	if len(newPort) > 0 {
+		updateProfile.Port = newPort
+	}
+
+	newKeyPath := getUserInputLoop("Enter path to identity file: ", []validators.IValidator{})
+	if len(newKeyPath) > 0 {
+		updateProfile.KeyPath = newKeyPath
+	}
+
+	confirm := getUserInputLoop("Confirm update (y or n)?: ", []validators.IValidator{
+		validators.ExistsValidator{[]string{"y", "n"}},
+	})
+	if confirm == "n" {
+		return
+	}
+
+	fmt.Print("Profile was updated!\n\n")
 	saveProfiles()
 	printProfiles()
 }
